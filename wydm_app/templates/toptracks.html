@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenade {{ current_month }} Recap</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/serenade_logo.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/toptracks.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Customize</h2>
+            <label for="layout-select">Pick Layout:</label>
+            <select id="layout-select">
+                <option value="list">Instagram Post</option>
+                <option value="story" selected>Instagram Story</option>
+            </select>
+    
+            <label for="metric-select" style="margin-top: 15px;">Metric:</label>
+            <select id="metric-select">
+                <option value="tracks">Top Tracks</option>
+                <option value="artists">Top Artists</option>
+                <option value="genres">Top Genres</option>
+                <option value="trends">Your Trends</option>
+            </select>
+    
+            <label style="margin-top: 15px;">Time Period:</label>
+            <div class="time-options">
+                <button data-period="short_term" class="active">Last Month</button>
+                <button data-period="medium_term">Last 6 Months</button>
+                <button data-period="long_term">Last Year</button>
+            </div>
+    
+            <label for="color-select" class="color-option" style="margin-top: 15px;">Color Variant:</label>
+            <select id="color-select" class="color-option">
+                <option value="default">Default (Pink)</option>
+                <option value="aquablue">Aqua Blue</option>
+                <option value="green">Green</option>
+                <option value="purple">Purple</option>
+                <option value="yellow">Yellow</option>
+            </select>
+
+            <button id="download-btn">Save as Image</button>
+
+            <p class="color-description">
+                More colors and layouts to be added soon!
+                <br><br>
+                &copy; Serenade, 2025 | @raianah
+                <br>
+                Version: 0.0.1 (BETA)
+            </p>
+        </div>
+
+        <div id="generated-image-container">
+            <img id="generated-image" src="/generate_recap/?layout=story" alt="Generated Recap">
+        </div>
+        
+    </div>    
+
+    <script src="js/toptracks.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+body {
+    width: 1080px;
+    height: 1920px;
+    background: linear-gradient(135deg, #ff758c, #ff7eb3);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+}
+h1 {
+    font-size: 80px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.tracks {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 20px;
+    border-radius: 15px;
+    font-size: 40px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+.track img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+}
+.track-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.track-name {
+    font-weight: bold;
+    font-size: 50px;
+}
+.artist-name {
+    font-size: 40px;
+    color: #ffe6f2;
+}

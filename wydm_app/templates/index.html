@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenade Home Page</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/serenade_logo.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+</head>
+<body>
+    <div class="nav-container">
+        <nav class="nav" id="nav">
+            <a href="#home" class="logo"><img src="{% static 'img/serenade_logo.png' %}" alt=""></a>
+            <a href="{% url 'about' %}">About</a>
+            <a href="{% url 'privacy' %}">Privacy</a>
+            <a href="{% url 'creator' %}">Creator</a>
+            <a href="javascript:void(0);" id="menu-toggle" onclick="togglemenu()">
+                <div class="menu-toggle__bar1"></div>
+                <div class="menu-toggle__bar2"></div>
+                <div class="menu-toggle__bar3"></div>
+            </a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Select Type</h1>
+        <div class="options">
+            <!-- <a href="{% url 'form_page' option='love-letter' %}"><button>💌 Love Letter</button></a> -->
+            <!-- <a href="{% url 'form_page' option='prom-date' %}"><button>🔗 Prom Date</button></a> -->
+            <a href="{% url 'form_page' option='wydm' %}"><button>💌 Will You Date Me?</button></a>
+            <a href="{% url 'auth' %}"><button>🎧 Serenade Recap</button></a>
+            <!-- <a href="{% url 'form_page' option='long-sweet-message' %}"><button>📧 Long Sweet Message</button></a> -->
+        </div>
+        <p class="footer">
+            &copy; Serenade, 2025 <br>
+            Created with ❤️ by <a href="https://github.com/raianah">raianah</a>
+        </p>
+    </div>
+
+    <script src="{% static 'js/index.js' %}"></script>
+</body>
+</html>

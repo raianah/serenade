@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenade Privacy</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'img/serenade_logo.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/details.css' %}">
+</head>
+<body>
+    <div class="glossy-container">
+        <h1>Privacy | Date Card</h1>
+        <p>
+            By using <a href="{% url 'form_page' option='wydm' %}" style="text-decoration: none;">Serenade Date Card</a>, you agree to store certain your 'input' as mode of information to create specialized and personalized date cards. This includes 'Your Name', 'Your Date's Name', and 'Your Message'.
+            <br><br>
+            These input will store in our database and will be automatically deleted after 15 days.
+        </p>
+
+        <h1 style="margin-top: 70px;">Privacy | Music Recap</h1>
+        <p>
+            By using <a href="{% url 'auth' %}" style="text-decoration: none;">Serenade Music Recap</a>, you adhere to the usage of your account username and data to access top artists, tracks, and other options provided by the web application.
+            <br><br>
+            No account data is stored in our database, and is not shared by any third parties. The only purpose of accessing your account data is to create music recaps.
+        </p>
+    </div>    
+</body>
+</html>
