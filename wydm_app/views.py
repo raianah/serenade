@@ -3,17 +3,17 @@ from django.http import HttpResponseServerError, HttpResponse
 from easy_pil import load_image, Canvas, Editor, Font
 from .models import Invitation
 from spotipy import SpotifyOAuth, Spotify
-from spotipy.cache_handler import CacheFileHandler
 from dotenv import load_dotenv
 from io import BytesIO
 from collections import defaultdict, Counter
 import uuid, random, os, datetime, re
-from PIL import _imagingft
 
 load_dotenv()
 
 SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_CLIENT_ID"), os.getenv("SPOTIPY_CLIENT_SECRET"), os.getenv("SPOTIPY_REDIRECT_URI")
+LASTFM_API_KEY, LASTFM_API_SECRET = os.getenv("LASTFM_API_KEY"), os.getenv("LASTFM_API_SECRET")
 
+# All pre-set arrays & constants will be moved to `/static/constants/constants.py` by ver. 1.0.x or after the beta was lifted. 
 ROMANTIC_QUOTES = [
     "Will you date me?",
     "Every love story is beautiful, but ours will be my favorite.",
@@ -129,7 +129,7 @@ def detect_lang(name, artist, layout):
     df_track_font, df_artist_font = Font.poppins("bold", size=font_size[0]), Font.poppins(size=font_size[1])
     kr_track_font, kr_artist_font = Font("./wydm_app/static/font/Noto_Sans_KR/static/NotoSansKR-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans_KR/static/NotoSansKR-Regular.ttf", size=font_size[1])
     jp_track_font, jp_artist_font = Font("./wydm_app/static/font/Noto_Sans_JP/static/NotoSansJP-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans_JP/static/NotoSansJP-Regular.ttf", size=font_size[1])
-    cn_track_font, cn_artist_font = Font("./wydm_app/static/font/Noto_Sans_SC/static/NotoSansSC-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans_SC/static/NotoSansSC-Regular.ttf", size=font_size[1])
+    cn_track_font, cn_artist_font = Font("./wydm_app/static/font/Noto_Sans_TC/static/NotoSansTC-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans_TC/static/NotoSansTC-Regular.ttf", size=font_size[1])
     th_track_font, th_artist_font = Font("./wydm_app/static/font/Noto_Sans_Thai/static/NotoSansThai-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans_Thai/static/NotoSansThai-Regular.ttf", size=font_size[1])
     vi_track_font, vi_artist_font = Font("./wydm_app/static/font/Noto_Sans/static/NotoSans-Bold.ttf", size=font_size[0]), Font("./wydm_app/static/font/Noto_Sans/static/NotoSans-Regular.ttf", size=font_size[1])
 
@@ -173,6 +173,7 @@ def generate_story_recap(tracks, month, color):
     shadow_intensity, shadow_offset = 40, 8
     shadow_color = (0, 0, 0, int(255 * (shadow_intensity / 80)))
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_white.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=100), Font.poppins("bold", size=60)
 
     draw.text((540, 80), "My Serenade", color=colors['title_color'], font=title_font, align='center')
@@ -213,7 +214,8 @@ def generate_story_recap(tracks, month, color):
         y_image_value += 140
         y_text_value += 140
 
-    draw.text((540, 1825), f"{month} | © Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1800), f"{month} | © Serenade, 2025", color=colors['title_color'], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1795))
 
     # Save & return image
     img_io = BytesIO()
@@ -232,6 +234,7 @@ def generate_post_recap(tracks, month, color):
     shadow_intensity, shadow_offset = 40, 8
     shadow_color = (0, 0, 0, int(255 * (shadow_intensity / 100)))
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_black.png").resize((135, 37))
     title_font, rank_font, listener_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=80), Font.poppins("bold", size=40), Font.poppins(size=25)
 
     draw.text((540, 70), f"My Serenade {month} Recap", color=colors['post_title_color'], font=title_font, align='center')
@@ -273,7 +276,8 @@ def generate_post_recap(tracks, month, color):
         y_image_value += 105
         y_text_value += 105
 
-    draw.text((540, 1250), f"{month} | © Serenade, 2025", color=colors["post_title_color"], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1260), f"{month} | © Serenade, 2025", color=colors["post_title_color"], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1255))
 
     # Save & return image
     img_io = BytesIO()
@@ -286,6 +290,7 @@ def generate_trend_story(stats, color):
     img = Canvas((1080, 1920), color=colors['story_base_color'])
     draw = Editor(img)
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_white.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=120), Font.poppins(size=40)
 
     draw.text((540, 80), "My Serenade", color=colors['title_color'], font=title_font, align='center')
@@ -333,7 +338,8 @@ def generate_trend_story(stats, color):
     draw.text((480, 1370), text=f"{long_term_artist_name}", color=colors['post_title_color'], font=long_term_artist_font)
     draw.text((480, 1470), text=f"{stats['long_term'][0][1]['long_term']} time/s", color=colors['post_title_color'], font=long_term_track_font)
 
-    draw.text((540, 1800), text="© Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=40), align='center')
+    draw.text((70, 1800), text="© Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=40), align='center')
+    draw.paste(spotify_logo, (881, 1795))
 
     img_io = BytesIO()
     draw.save(img_io, format="PNG")
@@ -345,6 +351,7 @@ def generate_trend_post(stats, color):
     img = Canvas((1080, 1320), color=colors['post_base_color'])
     draw = Editor(img)
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_black.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=100), Font.poppins(size=30)
     top_start_color, top_end_color = colors['top_start_color'], colors['top_end_color']
 
@@ -399,7 +406,8 @@ def generate_trend_post(stats, color):
     draw.text((430, 1030), text=f"{long_term_artist_name}", color=colors['text_color'], font=long_term_artist_font)
     draw.text((430, 1110), text=f"{stats['long_term'][0][1]['long_term']} time/s", color=colors['text_color'], font=long_term_track_font)
 
-    draw.text((540, 1240), text=f"© Serenade, 2025", color=colors['post_title_color'], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1260), text=f"© Serenade, 2025", color=colors['post_title_color'], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1255))
 
     img_io = BytesIO()
     draw.save(img_io, format="PNG")
@@ -411,6 +419,7 @@ def generate_genre_story(genre, color):
     img = Canvas((1080, 1920), color=colors['story_base_color'])
     draw = Editor(img)
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_white.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=120), Font.poppins(size=35)
     genre_font, count_font = Font.poppins(size=30), Font.poppins("bold", size=130)
 
@@ -451,7 +460,8 @@ def generate_genre_story(genre, color):
         draw.text((880, 1340), text=f"{genre['long_term'][2][1]}", color="black", font=count_font, align='center')
         draw.text((880, 1490), text=f"{genre['long_term'][2][0].upper()}", color="black", font=genre_font, align='center')
 
-    draw.text((540, 1800), text="© Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=40), align='center')
+    draw.text((70, 1800), text="© Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=40), align='center')
+    draw.paste(spotify_logo, (881, 1795))
 
     # Save & return image
     img_io = BytesIO()
@@ -464,6 +474,7 @@ def generate_genre_post(genre, color):
     img = Canvas((1080, 1320), color=colors['post_base_color'])
     draw = Editor(img)
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_black.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=100), Font.poppins(size=30)
     genre_font, count_font = Font.poppins(size=25), Font.poppins("bold", size=100)
     top_start_color, top_end_color = colors['top_start_color'], colors['top_end_color']
@@ -511,7 +522,8 @@ def generate_genre_post(genre, color):
         draw.text((880, 1000), text=f"{genre['long_term'][2][1]}", color="white", font=count_font, align='center')
         draw.text((880, 1120), text=f"{genre['long_term'][2][0].upper()}", color="white", font=genre_font, align='center')
 
-    draw.text((540, 1240), text=f"© Serenade, 2025", color=colors['post_title_color'], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1260), text=f"© Serenade, 2025", color=colors['post_title_color'], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1255))
 
     img_io = BytesIO()
     draw.save(img_io, format="PNG")
@@ -529,6 +541,7 @@ def generate_artist_story(artists, month, color):
     shadow_intensity, shadow_offset = 40, 8
     shadow_color = (0, 0, 0, int(255 * (shadow_intensity / 80)))
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_white.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=100), Font.poppins("bold", size=60)
 
     draw.text((540, 80), "My Serenade", color=colors['title_color'], font=title_font, align='center')
@@ -568,7 +581,8 @@ def generate_artist_story(artists, month, color):
         y_image_value += 140
         y_text_value += 140
 
-    draw.text((540, 1825), f"{month} | © Serenade, 2025", color=colors['title_color'], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1800), f"{month} | © Serenade, 2025", color=colors['title_color'], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1795))
 
     img_io = BytesIO()
     draw.save(img_io, format="PNG")
@@ -586,6 +600,7 @@ def generate_artist_post(artists, month, color):
     shadow_intensity, shadow_offset = 40, 8
     shadow_color = (0, 0, 0, int(255 * (shadow_intensity / 100)))
 
+    spotify_logo = Editor("./wydm_app/static/img/spotify_black.png").resize((135, 37))
     title_font, rank_font = Font("./wydm_app/static/font/Dancing_Script/static/DancingScript-Bold.ttf", size=80), Font.poppins("bold", size=40)
 
     draw.text((540, 70), f"My Serenade {month} Recap", color=colors['post_title_color'], font=title_font, align='center')
@@ -626,7 +641,8 @@ def generate_artist_post(artists, month, color):
         y_image_value += 105
         y_text_value += 105
 
-    draw.text((540, 1250), f"{month} | © Serenade, 2025", color=colors['post_title_color'], font=Font.poppins("bold", size=30), align='center')
+    draw.text((70, 1260), f"{month} | © Serenade, 2025", color=colors['post_title_color'], font=Font.poppins(size=25), align='left')
+    draw.paste(spotify_logo, (881, 1255))
 
     img_io = BytesIO()
     draw.save(img_io, format="PNG")

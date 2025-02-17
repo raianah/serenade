@@ -1,6 +1,6 @@
 django
 gunicorn
-git+https://github.com/raianah/easy-pil
+git+https://github.com/raianah/easy-pil 
 spotipy
 python-dotenv
 psycopg[binary]

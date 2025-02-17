@@ -86,18 +86,16 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Make sure cookies can be saved
 SESSION_COOKIE_NAME = "sessionid"
-SESSION_COOKIE_SECURE = False  # Change to True if using HTTPS
+SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"  # Set to "None" if using cross-origin cookies
+SESSION_COOKIE_SAMESITE = "Lax"
 
-CSRF_COOKIE_SECURE = False  # Change to True if using HTTPS
+CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# Enable WhiteNoise for efficient static file serving
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
