@@ -3,10 +3,12 @@ from django.http import HttpResponseServerError, HttpResponse
 from easy_pil import load_image, Canvas, Editor, Font
 from .models import Invitation
 from spotipy import SpotifyOAuth, Spotify
+from spotipy.cache_handler import CacheFileHandler
 from dotenv import load_dotenv
 from io import BytesIO
 from collections import defaultdict, Counter
 import uuid, random, os, datetime, re
+from PIL import _imagingft
 
 load_dotenv()
 
@@ -640,197 +642,197 @@ def generate_recap_image(request):
     # if not access_token:
     #     return redirect("auth")
 
-    # try:
-    sp = Spotify(auth=access_token)
-    top_tracks = sp.current_user_top_tracks(time_range=period, limit=10)
-    top_artists = sp.current_user_top_artists(time_range=period, limit=10)
-    month = datetime.datetime.now().strftime("%B")
+    try:
+        sp = Spotify(auth=access_token)
+        top_tracks = sp.current_user_top_tracks(time_range=period, limit=10)
+        top_artists = sp.current_user_top_artists(time_range=period, limit=10)
+        month = datetime.datetime.now().strftime("%B")
 
-    formatted_tracks, formatted_artists, top_tracks_by_period = [], [], {}
-    top_tracks_by_period = {}
+        formatted_tracks, formatted_artists, top_tracks_by_period = [], [], {}
+        top_tracks_by_period = {}
 
-    time_ranges = ["short_term", "medium_term", "long_term"]
-    track_history = defaultdict(lambda: {"short_term": (0, False), "medium_term": (0, False), "long_term": (0, False)})
-    genre_history = defaultdict(lambda: {"short_term": None, "medium_term": None, "long_term": None})
+        time_ranges = ["short_term", "medium_term", "long_term"]
+        track_history = defaultdict(lambda: {"short_term": (0, False), "medium_term": (0, False), "long_term": (0, False)})
+        genre_history = defaultdict(lambda: {"short_term": None, "medium_term": None, "long_term": None})
 
-    # Generate the image based on the selected layout
-    if layout == "story":
-        if metric == "tracks":
-            for i, track in enumerate(top_tracks["items"]):
-                artist_name = track["artists"][0]["name"]
-                track_name = track["name"]
-                album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
-                duration = track["duration_ms"]
-                _duration = format_duration(duration // 1000)
-
-                formatted_tracks.append({
-                    "name": track_name,
-                    "artist": artist_name,
-                    "album_cover": album_cover,
-                    "duration": _duration
-            })
-            img_io = generate_story_recap(formatted_tracks, month, color)
-        elif metric == "artists":
-            for i, track in enumerate(top_artists["items"]):
-                artist_name = track["name"]
-                artist_image = track["images"][0]["url"] if track["images"] else None
-                popularity = track["popularity"]
-
-                formatted_artists.append({
-                    "name": artist_name,
-                    "image": artist_image,
-                    "popularity": popularity
-            })
-            img_io = generate_artist_story(formatted_artists, month, color)
-        elif metric == "trends":
-            for period in time_ranges:
-                top_tracks_by_period[period] = sp.current_user_top_tracks(limit=50, time_range="long_term")["items"]
-
-            for period in time_ranges:
-                for rank, track in enumerate(top_tracks_by_period[period], start=1):
+        # Generate the image based on the selected layout
+        if layout == "story":
+            if metric == "tracks":
+                for i, track in enumerate(top_tracks["items"]):
+                    artist_name = track["artists"][0]["name"]
                     track_name = track["name"]
                     album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
+                    duration = track["duration_ms"]
+                    _duration = format_duration(duration // 1000)
 
-                    track_history[track_name]["artist"] = track["artists"][0]["name"]
-                    track_history[track_name]["album_cover"] = album_cover
-                    track_history[track_name][period] = (rank, rank == 50)
+                    formatted_tracks.append({
+                        "name": track_name,
+                        "artist": artist_name,
+                        "album_cover": album_cover,
+                        "duration": _duration
+                })
+                img_io = generate_story_recap(formatted_tracks, month, color)
+            elif metric == "artists":
+                for i, track in enumerate(top_artists["items"]):
+                    artist_name = track["name"]
+                    artist_image = track["images"][0]["url"] if track["images"] else None
+                    popularity = track["popularity"]
 
-            sorted_tracks = {
-                "short_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["short_term"][0] if x[1]["short_term"][0] > 0 else float('inf'), x[1]["short_term"][1]),
-                    reverse=True
-                ),
-                "medium_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["medium_term"][0] if x[1]["medium_term"][0] > 0 else float('inf'), x[1]["medium_term"][1]),
-                    reverse=True
-                ),
-                "long_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["long_term"][0] if x[1]["long_term"][0] > 0 else float('inf'), x[1]["long_term"][1]),
-                    reverse=True
-                ),
-            }
+                    formatted_artists.append({
+                        "name": artist_name,
+                        "image": artist_image,
+                        "popularity": popularity
+                })
+                img_io = generate_artist_story(formatted_artists, month, color)
+            elif metric == "trends":
+                for period in time_ranges:
+                    top_tracks_by_period[period] = sp.current_user_top_tracks(limit=50, time_range="long_term")["items"]
 
-            filtered_sorted_tracks = {
-                period: [track for track in tracks if track[1][period][0] > 0]
-                for period, tracks in sorted_tracks.items()
-            }
+                for period in time_ranges:
+                    for rank, track in enumerate(top_tracks_by_period[period], start=1):
+                        track_name = track["name"]
+                        album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
 
-            for period, tracks in filtered_sorted_tracks.items():
-                for track in tracks:
-                    if track[1][period][1]:
-                        track[1][period] = "50+"
-                    else:
-                        track[1][period] = track[1][period][0]
+                        track_history[track_name]["artist"] = track["artists"][0]["name"]
+                        track_history[track_name]["album_cover"] = album_cover
+                        track_history[track_name][period] = (rank, rank == 50)
 
-            img_io = generate_trend_story(filtered_sorted_tracks, color)
-        elif metric == "genres":
-            for period in time_ranges:
-                top_tracks_by_period[period] = sp.current_user_top_tracks(limit=10, time_range=period)["items"]
+                sorted_tracks = {
+                    "short_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["short_term"][0] if x[1]["short_term"][0] > 0 else float('inf'), x[1]["short_term"][1]),
+                        reverse=True
+                    ),
+                    "medium_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["medium_term"][0] if x[1]["medium_term"][0] > 0 else float('inf'), x[1]["medium_term"][1]),
+                        reverse=True
+                    ),
+                    "long_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["long_term"][0] if x[1]["long_term"][0] > 0 else float('inf'), x[1]["long_term"][1]),
+                        reverse=True
+                    ),
+                }
 
-            for period in time_ranges:
-                all_genres = []
-                for track in top_tracks_by_period[period]:
-                    genres = sp.artist(track["artists"][0]["id"])["genres"]
-                    all_genres.extend(genres)
+                filtered_sorted_tracks = {
+                    period: [track for track in tracks if track[1][period][0] > 0]
+                    for period, tracks in sorted_tracks.items()
+                }
 
-                genre_counts = Counter(all_genres)
-                genre_history[period] = genre_counts.most_common(3)
-            
-            img_io = generate_genre_story(genre_history, color)
-    elif layout == "list":
-        if metric == "tracks":
-            for i, track in enumerate(top_tracks["items"]):
-                artist_name = track["artists"][0]["name"]
-                track_name = track["name"]
-                album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
-                duration = track["duration_ms"]
-                _duration = format_duration(duration // 1000)
+                for period, tracks in filtered_sorted_tracks.items():
+                    for track in tracks:
+                        if track[1][period][1]:
+                            track[1][period] = "50+"
+                        else:
+                            track[1][period] = track[1][period][0]
 
-                formatted_tracks.append({
-                    "name": track_name,
-                    "artist": artist_name,
-                    "album_cover": album_cover,
-                    "duration": _duration
-            })
-            img_io = generate_post_recap(formatted_tracks, month, color)
-        elif metric == "artists":
-            for i, track in enumerate(top_artists["items"]):
-                artist_name = track["name"]
-                artist_image = track["images"][0]["url"] if track["images"] else None
-                popularity = track["popularity"]
+                img_io = generate_trend_story(filtered_sorted_tracks, color)
+            elif metric == "genres":
+                for period in time_ranges:
+                    top_tracks_by_period[period] = sp.current_user_top_tracks(limit=10, time_range=period)["items"]
 
-                formatted_artists.append({
-                    "name": artist_name,
-                    "image": artist_image,
-                    "popularity": popularity
-            })
-            img_io = generate_artist_post(formatted_artists, month, color)
-        elif metric == "trends":
-            for period in time_ranges:
-                top_tracks_by_period[period] = sp.current_user_top_tracks(limit=50, time_range=period)["items"]
+                for period in time_ranges:
+                    all_genres = []
+                    for track in top_tracks_by_period[period]:
+                        genres = sp.artist(track["artists"][0]["id"])["genres"]
+                        all_genres.extend(genres)
 
-            for period in time_ranges:
-                for rank, track in enumerate(top_tracks_by_period[period], start=1):
+                    genre_counts = Counter(all_genres)
+                    genre_history[period] = genre_counts.most_common(3)
+                
+                img_io = generate_genre_story(genre_history, color)
+        elif layout == "list":
+            if metric == "tracks":
+                for i, track in enumerate(top_tracks["items"]):
+                    artist_name = track["artists"][0]["name"]
                     track_name = track["name"]
                     album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
+                    duration = track["duration_ms"]
+                    _duration = format_duration(duration // 1000)
 
-                    track_history[track_name]["artist"] = track["artists"][0]["name"]
-                    track_history[track_name]["album_cover"] = album_cover
-                    track_history[track_name][period] = (rank, rank == 50)
+                    formatted_tracks.append({
+                        "name": track_name,
+                        "artist": artist_name,
+                        "album_cover": album_cover,
+                        "duration": _duration
+                })
+                img_io = generate_post_recap(formatted_tracks, month, color)
+            elif metric == "artists":
+                for i, track in enumerate(top_artists["items"]):
+                    artist_name = track["name"]
+                    artist_image = track["images"][0]["url"] if track["images"] else None
+                    popularity = track["popularity"]
 
-            sorted_tracks = {
-                "short_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["short_term"][0] if x[1]["short_term"][0] > 0 else float('inf'), x[1]["short_term"][1]),
-                    reverse=True
-                ),
-                "medium_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["medium_term"][0] if x[1]["medium_term"][0] > 0 else float('inf'), x[1]["medium_term"][1]),
-                    reverse=True
-                ),
-                "long_term": sorted(
-                    track_history.items(),
-                    key=lambda x: (x[1]["long_term"][0] if x[1]["long_term"][0] > 0 else float('inf'), x[1]["long_term"][1]),
-                    reverse=True
-                ),
-            }
+                    formatted_artists.append({
+                        "name": artist_name,
+                        "image": artist_image,
+                        "popularity": popularity
+                })
+                img_io = generate_artist_post(formatted_artists, month, color)
+            elif metric == "trends":
+                for period in time_ranges:
+                    top_tracks_by_period[period] = sp.current_user_top_tracks(limit=50, time_range=period)["items"]
 
-            filtered_sorted_tracks = {
-                period: [track for track in tracks if track[1][period][0] > 0]
-                for period, tracks in sorted_tracks.items()
-            }
+                for period in time_ranges:
+                    for rank, track in enumerate(top_tracks_by_period[period], start=1):
+                        track_name = track["name"]
+                        album_cover = track["album"]["images"][0]["url"] if track["album"]["images"] else None
 
-            for period, tracks in filtered_sorted_tracks.items():
-                for track in tracks:
-                    if track[1][period][1]:
-                        track[1][period] = "50+"
-                    else:
-                        track[1][period] = track[1][period][0]
+                        track_history[track_name]["artist"] = track["artists"][0]["name"]
+                        track_history[track_name]["album_cover"] = album_cover
+                        track_history[track_name][period] = (rank, rank == 50)
 
-            img_io = generate_trend_post(filtered_sorted_tracks, color)
-        elif metric == "genres":
-            for period in time_ranges:
-                top_tracks_by_period[period] = sp.current_user_top_tracks(limit=10, time_range=period)["items"]
+                sorted_tracks = {
+                    "short_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["short_term"][0] if x[1]["short_term"][0] > 0 else float('inf'), x[1]["short_term"][1]),
+                        reverse=True
+                    ),
+                    "medium_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["medium_term"][0] if x[1]["medium_term"][0] > 0 else float('inf'), x[1]["medium_term"][1]),
+                        reverse=True
+                    ),
+                    "long_term": sorted(
+                        track_history.items(),
+                        key=lambda x: (x[1]["long_term"][0] if x[1]["long_term"][0] > 0 else float('inf'), x[1]["long_term"][1]),
+                        reverse=True
+                    ),
+                }
 
-            for period in time_ranges:
-                all_genres = []
-                for track in top_tracks_by_period[period]:
-                    genres = sp.artist(track["artists"][0]["id"])["genres"]
-                    all_genres.extend(genres)
+                filtered_sorted_tracks = {
+                    period: [track for track in tracks if track[1][period][0] > 0]
+                    for period, tracks in sorted_tracks.items()
+                }
 
-                genre_counts = Counter(all_genres)
-                genre_history[period] = genre_counts.most_common(3)
-            
-            img_io = generate_genre_post(genre_history, color)
+                for period, tracks in filtered_sorted_tracks.items():
+                    for track in tracks:
+                        if track[1][period][1]:
+                            track[1][period] = "50+"
+                        else:
+                            track[1][period] = track[1][period][0]
 
-    return HttpResponse(img_io.getvalue(), content_type="image/png")
+                img_io = generate_trend_post(filtered_sorted_tracks, color)
+            elif metric == "genres":
+                for period in time_ranges:
+                    top_tracks_by_period[period] = sp.current_user_top_tracks(limit=10, time_range=period)["items"]
 
-    # except Exception as e:
-    #     print(f"Error: {e}")
+                for period in time_ranges:
+                    all_genres = []
+                    for track in top_tracks_by_period[period]:
+                        genres = sp.artist(track["artists"][0]["id"])["genres"]
+                        all_genres.extend(genres)
+
+                    genre_counts = Counter(all_genres)
+                    genre_history[period] = genre_counts.most_common(3)
+                
+                img_io = generate_genre_post(genre_history, color)
+
+        return HttpResponse(img_io.getvalue(), content_type="image/png")
+
+    except Exception as e:
+        print(f"Error: {e}")
     #     return redirect("auth")
 
 
@@ -852,21 +854,21 @@ def spotify_callback(request):
         
         access_token = token_info['access_token']
         response = redirect('toptracks')
-        response.set_cookie('access_token', access_token, max_age=3600, httponly=True, secure=True)
+        response.set_cookie('access_token', access_token, max_age=3600, httponly=True, samesite="Lax", secure=False)
         return response
     except Exception as e:
         return HttpResponseServerError(f"An error occurred: {str(e)}")
 
 def toptracks(request):
     access_token = request.COOKIES.get('access_token')
-    if not access_token:
-        return redirect('auth')
+    # if not access_token:
+    #     return redirect('auth')
     try:
         current_month = datetime.datetime.now().strftime('%B')
         return render(request, 'toptracks.html', {'current_month': current_month})
     except Exception as e:
         print(f"Error: {e}")
-        return redirect('auth')
+        # return redirect('auth')
 
 
 

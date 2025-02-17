@@ -58,14 +58,14 @@ document.addEventListener("DOMContentLoaded", function () {
         button.addEventListener("click", function () {
             timeButtons.forEach(btn => btn.classList.remove("active"));
             this.classList.add("active");
-            selectedPeriod = this.getAttribute("data-period"); colors['text_color']
-            updateLayout(); colors['text_color']
+            selectedPeriod = this.getAttribute("data-period");
+            updateLayout();
         });
     });
 
     layoutSelect.addEventListener("change", updateLayout);
     metricSelect.addEventListener("change", updateLayout);
 
-    updateLayout(); colors['text_color']
+    updateLayout();
 });
 
