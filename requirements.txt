@@ -4,3 +4,5 @@ git+https://github.com/raianah/easy-pil
 spotipy
 python-dotenv
 psycopg[binary]
+whitenoise
+watchfiles

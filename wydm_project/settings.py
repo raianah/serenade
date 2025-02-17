@@ -6,7 +6,7 @@ SECRET_KEY = 'your-secret-key'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['extreme4m5n.creepercloud.io:26071', 'serenade.thetwlight.xyz']
+ALLOWED_HOSTS = ['extreme4m5n.creepercloud.io', 'serenade.thetwlight.xyz']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
