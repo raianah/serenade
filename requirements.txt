@@ -2,7 +2,7 @@ django
 gunicorn
 git+https://github.com/raianah/easy-pil 
 spotipy
+pylast
 python-dotenv
 psycopg[binary]
-whitenoise
-watchfiles
+mysqlclient

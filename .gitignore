@@ -1,0 +1,40 @@
+# 🚀 Python & Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+db.sqlite3
+*.pyc
+*.pyo
+*.pyd
+
+# 🔥 Virtual Environment
+venv/
+.env/
+*.env
+env/
+ENV/
+*.venv
+env.bak/
+
+# 🛠️ VSCode & IDEs
+.vscode/
+.idea/
+*.iml
+
+# ⚙️ OS-Specific
+.DS_Store
+Thumbs.db
+
+# 📦 Dependencies
+node_modules/
+*.egg-info/
+*.lock
+
+# 🔑 Secrets & Credentials
+config.json
+secrets.json
+*.pem
+*.key
+*.crt
+settings_local.py  # If you have local settings for Django

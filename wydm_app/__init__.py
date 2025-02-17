@@ -1,2 +1,2 @@
 __author__ = 'raianxh_ (instagram)'
-__version__ = (0, 0, 1)
+__version__ = (0, 0, 4)

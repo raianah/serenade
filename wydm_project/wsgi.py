@@ -7,6 +7,3 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wydm_project.settings")
 
 # Initialize the WSGI application
 application = get_wsgi_application()
-
-# Enable WhiteNoise for serving static files
-application = WhiteNoise(application, root="/home/container/staticfiles")
